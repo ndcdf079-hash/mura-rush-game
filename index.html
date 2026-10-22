@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1b1537">
-  <meta name="description" content="ムラッ！で上スワイプ。シュン…は我慢！じわじわ高速化する、おバカなリズム反射神経ゲーム。">
-  <title>ムラッ！ラッシュ v1.3 | おバカなスワイプゲーム</title>
+  <meta name="description" content="ムラッ！で上スワイプ、シュン…は我慢！失敗即終了でどこまで点数を伸ばせる？どんどん速くなるおバカなエンドレス反射神経ゲーム。">
+  <title>ムラッ！ラッシュ v2.0 | エンドレス反射神経バトル</title>
   <style>
     :root{color-scheme:dark;--bg:#151127;--panel:#241c41;--panel2:#2c224b;--ink:#fff8fb;--dim:#baacce;--pink:#ff5dba;--pinklite:#ffc3e6;--lime:#bafa69;--danger:#fca7a7;--gold:#ffdc78}
     *,*:before,*:after{box-sizing:border-box}
@@ -134,6 +134,22 @@
       .signalWrap{min-height:82px;flex-basis:82px}
       h1{font-size:29px}.brand .sub{font-size:10px}
     }
+
+    /* v2.0 Endless survival and humorous fictional results */
+    .resultCard{padding:22px 17px 24px;max-height:94dvh;overflow-y:auto}
+    .resultOverlay h2{margin:2px 0;font-size:clamp(25px,7vw,36px)}
+    .resultOverlay p{margin:4px 0 9px}
+    .resultMetrics{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%;margin:12px 0}
+    .resultMetric{background:#241637;border:1px solid #8b598b;border-radius:13px;padding:11px 5px;text-align:center}
+    .resultMetric .small{font-size:11px;font-weight:900;color:#dfc4e9}
+    .resultMetric .value{font-size:clamp(25px,7vw,35px);font-weight:1000;color:#ffdf8a;white-space:nowrap}
+    .resultMetric .unit{font-size:15px;color:#fff2fb}
+    .resultJoke{width:100%;background:#44345a;border-radius:13px;color:#e4ff9a;font-size:17px;line-height:1.6;font-weight:1000;padding:11px 9px}
+    .resultActions{display:flex;flex-direction:column;gap:10px;width:100%;margin-top:14px}
+    .resultActions .bigBtn{width:100%;min-height:53px}
+    .resultActions .shareBtn{background:linear-gradient(180deg,#d0ffaa,#94da6a);box-shadow:0 4px 0 #548a43}
+    .resultNote{font-size:11px;color:#dcc8e5}
+    .topStart[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -141,22 +157,22 @@
   <header class="brand">
     <div class="eyebrow">THE MOST USELESS RHYTHM GAME</div>
     <h1>ムラッ！<b>ラッシュ</b></h1>
-    <p class="sub">緑でシュッ！ 紫なら我慢！ まずはゆっくり、最後は高速！</p>
+    <p class="sub">⚡ エンドレス！ 緑でスワイプ、紫は我慢。１ミスで終了！</p>
   </header>
   <section class="board" aria-label="ゲーム">
     <div class="stats" aria-label="ゲーム状況">
       <div class="stat"><div class="k">コンボ</div><div id="combo" class="v">0<small> ×</small></div></div>
       <div class="stat"><div class="k">スコア</div><div id="score" class="v">0</div></div>
       <div class="stat"><div class="k">ベスト</div><div id="best" class="v">0</div></div>
-      <div class="stat"><div class="k">ミス残</div><div id="lives" class="v">3</div></div>
+      <div class="stat"><div class="k">成功数</div><div id="hits" class="v">0</div></div>
     </div>
-    <div class="meterlabel"><span>🔥 射精ゲージ</span><strong id="gaugeText">0 / 100</strong></div>
+    <div class="meterlabel"><span>🔥 勢いチャージ <small style="color:#f1d5e9;font-weight:600">(満タンでも続く！)</small></span><strong id="gaugeText">0 / 100</strong></div>
     <div class="meter" role="progressbar" aria-label="射精ゲージ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="meter"><div class="meterfill" id="meterFill"></div></div>
     <button id="quickStart" class="topStart" type="button">▶ ここを押してスタート！</button>
     <div class="learn" aria-label="ルール"><span class="go">🟢 ムラッ！<br>上にシュッ ↑</span><span class="stop">🟣 シュン…<br>じっと我慢 ✋</span></div>
     <div class="arena" id="arena" aria-label="緑色のムラッで上スワイプ。紫のシュンでは停止" tabindex="0">
       <div class="beatTrack" aria-hidden="true"><div class="beatFill" id="beatFill"></div></div>
-      <div class="tempo" id="tempo">スピード：ふつう</div>
+      <div class="tempo" id="tempo">⚡ 1拍 1.03秒 → どんどん加速！</div>
       <div class="signalWrap"><div id="signal" class="signal wait" aria-live="off">READY?</div><div id="cueIcon" class="cueIcon">🟢 ↑ / 🟣 ✋</div><div class="hint" id="hint">緑が出たらすぐ上へ！</div></div>
       <div class="mascot" id="mascot" aria-hidden="true">
         <!-- Silly pink mascot: rounded shaft, cap and two circular feet. Non-realistic vector. -->
@@ -183,177 +199,230 @@
       <div id="fx" class="fx" aria-hidden="true"></div>
 
     </div>
-    <div class="message" id="message" aria-live="polite">スタートを押してね！</div>
+    <div class="message" id="message" aria-live="polite">１ミス即終了！ 最高得点を狙え！</div>
     <div class="actions">
       <button id="startBtn" class="bigBtn" type="button">▶ ゲームスタート！</button>
       <button id="actionBtn" class="smallBtn" type="button" aria-label="上スワイプの代わりにアクション">↑ 押す</button>
       <button id="soundBtn" class="smallBtn" type="button" aria-pressed="true">🔊 ON</button>
     </div>
   </section>
-  <div class="rules"><i>✅ 緑＝１回スワイプ</i><i>⛔ 紫＝スワイプ禁止</i><i>⏱ 上のバーが次の合図までの時間</i></div>
-  <p class="help">最初の合図は必ず <strong>緑の「ムラッ！」</strong> 。画面の枠内を上に払えばOK！<br>緑を見逃してもミスにはならない。紫で動くとミス。３ミスで終了。</p>
+  <div class="rules"><i>✅ 緑＝上スワイプ（見逃しも負け）</i><i>⛔ 紫＝触ったら即負け</i><i>⚡ １拍ごとに加速</i></div>
+  <p class="help">最初は必ず <strong>緑の「ムラッ！」</strong>。枠内を上にシュッ！<br><strong>緑の見逃し・紫でスワイプ＝即終了！</strong> 無限に続く勝負でハイスコアを狙おう。</p>
   <footer class="footer">おバカゲームにつき、真顔でのプレイは非推奨。<span>登録不要・オフラインOK</span>。<br>記録はこの端末にのみ保存されます。</footer>
 </main>
 <div class="resultOverlay" id="result" role="dialog" aria-modal="true" aria-label="ゲーム結果" aria-hidden="true">
   <div class="resultCard">
-    <div class="iconic" id="resultEmoji">🎉</div><h2 id="resultTitle">大成功！</h2><p id="resultDesc"></p>
-    <button id="retryBtn" class="bigBtn" type="button">もう１回！</button>
+    <div class="iconic" id="resultEmoji">🏆</div><h2 id="resultTitle">結果発表！</h2><p id="resultDesc"></p>
+    <div id="resultMetrics" class="resultMetrics"></div>
+    <div id="resultJoke" class="resultJoke"></div>
+    <div class="resultActions"><button id="retryBtn" class="bigBtn" type="button">🔄 もう１回！</button><button id="shareBtn" class="bigBtn shareBtn" type="button">📤 結果を共有</button></div>
   </div>
 </div>
 <script>
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const el = Object.fromEntries(['combo','score','best','lives','gaugeText','meter','meterFill','arena','tempo','signal','hint','mascot','fx','result','resultEmoji','resultTitle','resultDesc','retryBtn','message','startBtn','quickStart','actionBtn','soundBtn','beatFill','cueIcon'].map(id => [id,$(id)]));
-  const BEST_KEY = 'mura-rush-best-v1';
-  const S = {mode:'idle',gauge:0,combo:0,score:0,best:0,lives:3,kind:null,used:false,turn:0,lastKind:null,repeats:0,timer:null,sound:true,audio:null,swipe:null};
-  try{S.best=Number(localStorage.getItem(BEST_KEY))||0}catch(e){S.best=0}
-  const rand = (a,b)=>a+Math.random()*(b-a);
-  const clearTimer=()=>{clearTimeout(S.timer);S.timer=null};
-  const setMessage=t=>{el.message.textContent=t};
-  const pulse=(cls)=>{el.mascot.classList.remove('bop','oops');void el.mascot.offsetWidth;el.mascot.classList.add(cls);setTimeout(()=>el.mascot.classList.remove(cls),210)};
-  function tone(freq,duration=.09,type='sine',gain=.06,delay=0){
-    if(!S.sound)return;
-    try{
-      const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
-      S.audio ||= new Audio();
-      if(S.audio.state==='suspended')S.audio.resume().catch(()=>{});
-      const ctx=S.audio,osc=ctx.createOscillator(),vol=ctx.createGain(),t=ctx.currentTime+delay;
-      osc.type=type;osc.frequency.setValueAtTime(freq,t);osc.frequency.exponentialRampToValueAtTime(Math.max(70,freq*.88),t+duration);
-      vol.gain.setValueAtTime(.001,t);vol.gain.linearRampToValueAtTime(gain,t+.007);vol.gain.exponentialRampToValueAtTime(.001,t+duration);
-      osc.connect(vol);vol.connect(ctx.destination);osc.start(t);osc.stop(t+duration+.01);
-    }catch(e){}
+  const ids = ['combo','score','best','hits','gaugeText','meter','meterFill','arena','tempo','signal','hint','mascot','fx','result','resultEmoji','resultTitle','resultDesc','resultMetrics','resultJoke','retryBtn','shareBtn','message','startBtn','quickStart','actionBtn','soundBtn','beatFill','cueIcon'];
+  const el = Object.fromEntries(ids.map(id => [id,$(id)]));
+  const BEST_KEY = 'mura-rush-endless-v2-best';
+  const S = {mode:'idle',gauge:0,combo:0,hits:0,score:0,best:0,kind:null,used:false,turn:0,lastKind:null,repeats:0,timer:null,sound:true,audio:null,swipe:null,duration:1030,finishReason:''};
+  let maxCombo = 0;
+  try { S.best = Math.max(0,Number(localStorage.getItem(BEST_KEY))||0) } catch (_) {}
+  const clearTimer = () => { clearTimeout(S.timer); S.timer=null; };
+  const setMessage = text => { el.message.textContent=text };
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  const interval=()=>Math.max(175,Math.round(1030*Math.exp(-0.024*Math.max(0,S.turn-1))));
+  function sound(freq,duration=.08,type='triangle',volume=.045){
+    if(!S.sound) return;
+    try {
+      const C=window.AudioContext||window.webkitAudioContext;
+      if(!C) return;
+      S.audio ||= new C();
+      if(S.audio.state==='suspended') S.audio.resume().catch(()=>{});
+      const a=S.audio,o=a.createOscillator(),g=a.createGain(),t=a.currentTime;
+      o.type=type;o.frequency.value=freq;
+      g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(volume,t+.006);
+      g.gain.exponentialRampToValueAtTime(.001,t+duration);
+      o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+duration+.01);
+    }catch(_){}
   }
-  function vibrate(ms){try{if(navigator.vibrate)navigator.vibrate(ms)}catch(e){}}
+  function vibrate(p){try{navigator.vibrate?.(p)}catch(_){}}
   function update(){
-    el.combo.innerHTML=String(S.combo)+'<small> ×</small>';
+    el.combo.textContent=S.combo+' ×';
     el.score.textContent=S.score.toLocaleString('ja-JP');
-    el.best.textContent=S.best.toLocaleString('ja-JP');
-    el.lives.textContent=String(S.lives);
+    el.best.textContent=Math.max(S.best,S.score).toLocaleString('ja-JP');
+    el.hits.textContent=String(S.hits);
     el.gaugeText.textContent=S.gauge+' / 100';
     el.meterFill.style.width=S.gauge+'%';
     el.meter.setAttribute('aria-valuenow',String(S.gauge));
-    let ms=interval();
-    el.tempo.textContent = 'テンポ：'+(ms>1130?'練習（ゆっくり）':ms>960?'ふつう':ms>800?'はやい':ms>690?'激はや':'鬼')+'　♪';
+    const ms=interval();
+    const bpm=Math.round(60000/ms);
+    el.tempo.textContent='⚡ '+bpm+' BPM  /  1拍 '+(ms/1000).toFixed(2)+' 秒';
   }
-  function interval(){return Math.max(650, Math.round(1320 - 670*Math.pow(S.gauge/100,1.08)))}
-  function setSignal(text,cls,hint=''){
-    el.signal.className='signal '+cls;el.signal.textContent=text;el.hint.textContent=hint;
+  function cue(text,kind,hint){
+    el.signal.className='signal '+kind;
+    el.signal.textContent=text;el.hint.textContent=hint;
   }
   function reset(){
-    clearTimer();el.result.classList.remove('show');el.result.setAttribute('aria-hidden','true');el.mascot.classList.remove('dance','bop','oops');el.arena.classList.remove('wrong');
-    S.mode='idle';S.gauge=0;S.combo=0;S.score=0;S.lives=3;S.kind=null;S.used=false;S.turn=0;S.lastKind=null;S.repeats=0;
-    el.startBtn.textContent='▶ ゲームスタート！';el.startBtn.disabled=false;el.quickStart.hidden=false;el.quickStart.textContent='▶ ここを押してスタート！';el.fx.replaceChildren();el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');el.cueIcon.textContent='🟢 ↑ / 🟣 ✋';update();setSignal('READY?','wait','この枠をタップしてもスタート！');
+    clearTimer();
+    el.result.classList.remove('show');el.result.setAttribute('aria-hidden','true');
+    el.mascot.classList.remove('dance','bop','oops');
+    el.arena.classList.remove('wrong','hit-mode','trap-mode');
+    el.beatFill.classList.remove('running');
+    S.mode='idle';S.gauge=0;S.combo=0;S.hits=0;S.score=0;S.kind=null;S.used=false;S.turn=0;S.lastKind=null;S.repeats=0;S.swipe=null;S.duration=1030;S.finishReason='';maxCombo=0;
+    el.quickStart.hidden=false;el.quickStart.textContent='▶ ここを押してスタート！';
+    el.startBtn.textContent='▶ ゲームスタート！';
+    el.cueIcon.textContent='🟢 ↑ / 🟣 ✋';
+    el.fx.replaceChildren();cue('READY?','wait','この枠をタップしてスタート！');setMessage('緑を見逃しても即終了！ いつまで続けられる？');update();
   }
   function countdown(n){
     if(S.mode!=='countdown')return;
-    if(n===0){S.mode='playing';setMessage('ムラッ！を狙え！');step();return}
-    setSignal(n,'wait','まもなくスタート！');el.cueIcon.textContent='準備！';tone(330+n*90,.1,'triangle',.035);S.timer=setTimeout(()=>countdown(n-1),700);
+    if(n===0){S.mode='playing';setMessage('失敗したら終了！');step();return}
+    cue(String(n),'wait','準備！ もうすぐ始まる');
+    el.cueIcon.textContent='いくよ！';sound(400+n*100);
+    S.timer=setTimeout(()=>countdown(n-1),510);
   }
-  function start(){reset();S.mode='countdown';el.quickStart.hidden=true;el.startBtn.textContent='リスタート';setMessage('3、2、1…');countdown(3)}
+  function start(){
+    reset();S.mode='countdown';
+    el.quickStart.hidden=true;el.startBtn.textContent='▶ リスタート';
+    countdown(2);
+  }
   function chooseKind(){
-    if(S.turn<6)return ['hit','trap','hit','trap','hit','hit'][S.turn];
-    let kind=Math.random()<.56?'hit':'trap';
-    if(kind===S.lastKind&&S.repeats>=2)kind=kind==='hit'?'trap':'hit';
-    S.repeats=kind===S.lastKind?S.repeats+1:1;S.lastKind=kind;
-    return kind;
+    if(S.turn===0){S.lastKind='hit';S.repeats=1;return 'hit'}
+    let kind=Math.random()<.60?'hit':'trap';
+    if(kind===S.lastKind && S.repeats>=2)kind=kind==='hit'?'trap':'hit';
+    S.repeats=kind===S.lastKind?S.repeats+1:1;
+    S.lastKind=kind;return kind;
   }
   function step(){
     if(S.mode!=='playing')return;
-    if(S.turn>0 && S.kind==='hit' && !S.used){
-      S.combo=0;
-      setMessage('あっ、緑を見逃した！ 次の緑を狙おう');
-    }
+    if(S.kind==='hit'&&!S.used){finish('緑の「ムラッ！」を見逃した！');return}
     S.kind=chooseKind();S.used=false;S.turn++;
-    const isHit=S.kind==='hit';
-    el.arena.classList.toggle('hit-mode',isHit);
-    el.arena.classList.toggle('trap-mode',!isHit);
-    setSignal(isHit?'ムラッ！':'シュン…',isHit?'ready':'nope',isHit?'↑ 上スワイプ！':'✋ ストップ！');
-    el.cueIcon.textContent=isHit?'🟢 いま上へ！ ↑':'🟣 触らない！ ✋';
-    const duration=interval();
-    el.beatFill.classList.remove('running');
-    void el.beatFill.offsetWidth;
-    el.beatFill.style.setProperty('--beat-ms',duration+'ms');
-    el.beatFill.classList.add('running');
-    tone(isHit?660:280,.09,isHit?'triangle':'sine',isHit?.05:.028);
+    const hit=S.kind==='hit';
+    el.arena.classList.toggle('hit-mode',hit);el.arena.classList.toggle('trap-mode',!hit);
+    cue(hit?'ムラッ！':'シュン…',hit?'ready':'nope',hit?'⬆️ 今すぐ上にシュッ！':'✋ 上スワイプ禁止！');
+    el.cueIcon.textContent=hit?'🟢 今だ！ ↑':'🟣 我慢！ ✋';
+    S.duration=interval();
+    el.beatFill.classList.remove('running');void el.beatFill.offsetWidth;
+    el.beatFill.style.setProperty('--beat-ms',S.duration+'ms');el.beatFill.classList.add('running');
+    sound(hit?660:250,.07,hit?'triangle':'sine',hit?.044:.020);
     update();
-    S.timer=setTimeout(step,duration);
+    S.timer=setTimeout(step,S.duration);
   }
-  function burst(count=18){
-    const colors=['#ff6abb','#fff08b','#c8ff8a','#70e6ff','#ff9c70','#e6b5ff'];
+  function burst(count=9){
+    const colors=['#ff6abb','#fff08b','#c8ff8a','#70e6ff','#ff9c70'];
     for(let i=0;i<count;i++){
-      const node=document.createElement('span');node.className='particle';
-      const theta=rand(0,2*Math.PI),r=rand(80,210);
-      node.style.cssText=`--tx:${Math.cos(theta)*r}px;--ty:${Math.sin(theta)*r}px;--rot:${rand(-700,700)}deg;--dur:${rand(.55,1.3)}s;--clr:${colors[i%colors.length]};top:${rand(28,65)}%;left:${rand(40,60)}%`;
-      el.fx.append(node);node.addEventListener('animationend',()=>node.remove(),{once:true});
+      const p=document.createElement('span');p.className='particle';
+      const a=rnd(0,Math.PI*2),r=rnd(50,190);
+      p.style.cssText='--tx:'+(Math.cos(a)*r)+'px;--ty:'+(Math.sin(a)*r)+'px;--rot:'+rnd(-500,500)+'deg;--dur:'+rnd(.45,.95)+'s;--clr:'+colors[i%colors.length]+';top:'+rnd(24,65)+'%;left:'+rnd(35,65)+'%';
+      el.fx.append(p);p.addEventListener('animationend',()=>p.remove(),{once:true});
     }
   }
-  function finish(won){
-    clearTimer();S.mode=won?'win':'over';S.kind=null;el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');el.startBtn.textContent='▶ もう１回！';el.startBtn.disabled=false;el.quickStart.hidden=false;el.quickStart.textContent='▶ もう一度スタート！';
-    if(S.score>S.best){S.best=S.score;try{localStorage.setItem(BEST_KEY,String(S.best))}catch(e){}}
-    update();el.resultEmoji.textContent=won?'🚀🎉':'😵‍💫';
-    el.resultTitle.textContent=won?'射精成功！':'しゅん…終了！';
-    el.resultDesc.textContent=(won?'おめでとう！ よくぞ耐え抜いた！':'ミス３回！ 次こそタイミングを見極めよう！')+'\nスコア：'+S.score.toLocaleString('ja-JP')+'点　最大コンボ：'+maxCombo;
-    el.resultDesc.style.whiteSpace='pre-line';el.result.classList.add('show');el.result.setAttribute('aria-hidden','false');
-    if(won){el.mascot.classList.add('dance');burst(80);tone(523,.15,'triangle',.065);tone(659,.16,'triangle',.065,.14);tone(784,.24,'triangle',.065,.3);setMessage('🏆 大・成・功！')}
-    else{tone(240,.25,'sawtooth',.035);setMessage('🥀 もう一度チャレンジ！')}
+  function pulse(cls){
+    el.mascot.classList.remove('bop','oops');void el.mascot.offsetWidth;
+    el.mascot.classList.add(cls);setTimeout(()=>el.mascot.classList.remove(cls),200);
   }
-  let maxCombo=0;
+  function fictionalResult(score){
+    const volume=score?0.5+Math.pow(score/250,.75)*0.46:0;
+    const distance=score?0.2+Math.pow(score/160,1.15)*.7:0;
+    let rank,joke;
+    if(distance>=250){rank='銀河級の大噴射';joke='🛸 宇宙管制センター「未確認飛行物体です！」'}
+    else if(distance>=120){rank='気象庁もびっくり級';joke='🌦️ 本日の天気：ところによりムラッ！'}
+    else if(distance>=60){rank='隣町へのごあいさつ級';joke='🏘️ 隣町から「何か飛んできたぞ！」'}
+    else if(distance>=25){rank='校庭ひとっ飛び級';joke='🏃 運動会の新競技に採用されそう'}
+    else if(distance>=10){rank='噴水ショー級';joke='⛲ 公園の噴水にスカウトされました'}
+    else if(distance>=3){rank='ティッシュ超え級';joke='🧻 ティッシュの守備範囲を突破！'}
+    else if(score>0){rank='おちょこ級';joke='💧 小さくても一歩前進！'}
+    else{rank='発射台で終了級';joke='😴 まだエンジンが温まっていない…'}
+    return {volume:volume.toFixed(1),distance:distance.toFixed(1),rank,joke};
+  }
+  function finish(reason){
+    if(S.mode!=='playing')return;
+    clearTimer();S.mode='over';S.kind=null;S.swipe=null;S.finishReason=reason;
+    el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');
+    el.quickStart.hidden=false;el.quickStart.textContent='▶ リベンジ！';
+    el.startBtn.textContent='▶ もう１回！';
+    if(S.score>S.best){S.best=S.score;try{localStorage.setItem(BEST_KEY,String(S.best))}catch(_){}}
+    update();const f=fictionalResult(S.score);
+    el.resultEmoji.textContent=S.score>=S.best&&S.score>0?'🏆':'😵‍💫';
+    el.resultTitle.textContent='しゅん…終了！';
+    el.resultDesc.textContent=reason+'\n🏆 '+S.score.toLocaleString('ja-JP')+' 点  /  '+S.hits+' 回成功\n最高：'+S.best.toLocaleString('ja-JP')+' 点';
+    el.resultDesc.style.whiteSpace='pre-line';
+    el.resultMetrics.innerHTML='<div class="resultMetric"><div class="small">💦 妄想・射精量</div><div class="value">'+f.volume+'<span class="unit"> mL</span></div></div><div class="resultMetric"><div class="small">🚀 妄想・飛距離</div><div class="value">'+f.distance+'<span class="unit"> m</span></div></div>';
+    el.resultJoke.textContent='【'+f.rank+'】\n'+f.joke+'\n※数字はゲーム内の架空のジョーク値です。';
+    el.resultJoke.style.whiteSpace='pre-line';
+    el.result.classList.add('show');el.result.setAttribute('aria-hidden','false');
+    sound(170,.21,'sawtooth',.038);vibrate([50,25,60]);
+    setMessage('結果は「📤 結果を共有」で友達に送ろう！');
+  }
   function action(){
     if(S.mode!=='playing')return;
-    if(S.used){setMessage('次の表示を待って！');return}
-    S.used=true;
-    if(S.kind==='hit'){
-      S.combo++;maxCombo=Math.max(maxCombo,S.combo);S.gauge=Math.min(100,S.gauge+10);S.score+=100+(S.combo-1)*20;update();pulse('bop');vibrate(24);
-      el.cueIcon.textContent='✅ 成功！ ＋10';
-      setMessage('💗 ナイス！ ＋10　'+(S.combo>1?S.combo+'コンボ！':'成功！'));
-      tone(520+Math.min(S.combo,9)*44,.085,'triangle',.07);
-      burst(3);
-      if(S.gauge>=100){finish(true);return}
-    }else{
-      S.lives--;S.combo=0;S.gauge=Math.max(0,S.gauge-6);update();pulse('oops');vibrate([65,35,65]);
-      el.arena.classList.remove('wrong');void el.arena.offsetWidth;el.arena.classList.add('wrong');
-      el.cueIcon.textContent='❌ 紫では止まって！';
-      setMessage('💀 シュン…で動いた！ 残り'+S.lives+'ミス');tone(165,.21,'sawtooth',.04);
-      if(S.lives<=0){finish(false);return}
-    }
+    if(S.used)return;
+    if(S.kind!=='hit'){finish('紫の「シュン…」で動いてしまった！');return}
+    S.used=true;S.combo++;S.hits++;maxCombo=Math.max(maxCombo,S.combo);
+    const gained=Math.round((100+S.combo*8)*(1+Math.min(3,S.turn/24)));
+    S.score+=gained;
+    S.gauge=(S.hits%10===0)?100:(S.hits%10)*10;
+    pulse('bop');vibrate(17);sound(520+Math.min(550,S.combo*15),.066,'triangle',.048);
+    el.cueIcon.textContent='✅ +'+gained+' 点！';
+    setMessage('+'+gained+'点！ '+S.hits+'回成功！ 次はもっと速い！');
+    burst(S.hits%10===0?20:4);
+    update();
   }
-  el.arena.addEventListener('pointerdown',e=>{
-    if(S.mode!=='playing')return;
-    if(e.pointerType==='mouse'&&e.button!==0)return;
-    S.swipe={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId,turn:S.turn};
-    try{el.arena.setPointerCapture(e.pointerId)}catch(e){}
-  });
-  el.arena.addEventListener('pointerup',e=>{
-    if(['idle','paused','over','win'].includes(S.mode)){beginOrResume();return}
-    if(!S.swipe||S.swipe.id!==e.pointerId)return;
-    const {x,y,t,turn}=S.swipe;S.swipe=null;
-    const dy=e.clientY-y,dx=e.clientX-x,dt=performance.now()-t;
-    if(dy < -32 && Math.abs(dy)>Math.abs(dx)*1.05 && dt<950){
-      if(turn===S.turn)action();else setMessage('合図が切り替わった！ 次を狙って');
-    }
-  });
-  el.arena.addEventListener('pointercancel',()=>{S.swipe=null});
-  el.arena.addEventListener('click',()=>{if(['idle','paused','over','win'].includes(S.mode))beginOrResume()});
-  document.addEventListener('keydown',e=>{
-    const target=e.target;
-    if((e.code==='ArrowUp'||e.code==='Space')&&!['BUTTON','INPUT','TEXTAREA'].includes(target?.tagName)){
-      e.preventDefault();if(S.mode==='playing')action();else if(S.mode==='idle'||S.mode==='win'||S.mode==='over')start();
-    }
-  });
   function beginOrResume(){
     if(S.mode==='countdown'||S.mode==='playing')return;
-    if(S.mode==='paused'){S.mode='countdown';el.quickStart.hidden=true;el.startBtn.textContent='リスタート';countdown(2)}
-    else{maxCombo=0;start()}
+    if(S.mode==='paused'){
+      S.mode='countdown';S.kind=null;S.used=true;S.swipe=null;
+      el.quickStart.hidden=true;el.startBtn.textContent='▶ リスタート';countdown(2);
+    }else start();
   }
   el.startBtn.addEventListener('click',beginOrResume);
   el.quickStart.addEventListener('click',beginOrResume);
-  el.retryBtn.addEventListener('click',()=>{maxCombo=0;start()});
+  el.retryBtn.addEventListener('click',beginOrResume);
   el.actionBtn.addEventListener('click',action);
-  el.soundBtn.addEventListener('click',()=>{S.sound=!S.sound;el.soundBtn.textContent=S.sound?'🔊 ON':'🔇 OFF';el.soundBtn.setAttribute('aria-pressed',String(S.sound));if(S.sound)tone(700,.09)});
+  el.soundBtn.addEventListener('click',()=>{S.sound=!S.sound;el.soundBtn.textContent=S.sound?'🔊 ON':'🔇 OFF';el.soundBtn.setAttribute('aria-pressed',String(S.sound));if(S.sound)sound(700)});
+  el.arena.addEventListener('pointerdown',e=>{
+    if(S.mode!=='playing'||(e.pointerType==='mouse'&&e.button!==0))return;
+    S.swipe={x:e.clientX,y:e.clientY,id:e.pointerId,turn:S.turn,t:performance.now()};
+    try{el.arena.setPointerCapture(e.pointerId)}catch(_){}
+  });
+  el.arena.addEventListener('pointerup',e=>{
+    if(S.mode==='idle'||S.mode==='paused'){beginOrResume();return}
+    if(S.mode!=='playing'||!S.swipe||S.swipe.id!==e.pointerId)return;
+    const a=S.swipe;S.swipe=null;
+    const dy=e.clientY-a.y,dx=e.clientX-a.x,dt=performance.now()-a.t;
+    if(dy< -28 && Math.abs(dy)>Math.abs(dx)*1.04 && dt<900){
+      if(a.turn===S.turn)action();
+      else if(S.mode==='playing')finish('合図の切り替わりに間に合わなかった！');
+    }
+  });
+  el.arena.addEventListener('pointercancel',()=>{S.swipe=null});
+  el.arena.addEventListener('click',()=>{if(S.mode==='idle'||S.mode==='paused')beginOrResume()});
+  document.addEventListener('keydown',e=>{
+    if((e.code==='ArrowUp'||e.code==='Space')&&!['BUTTON','INPUT','TEXTAREA'].includes(e.target?.tagName)){
+      e.preventDefault();
+      if(S.mode==='playing')action();else if(S.mode==='idle'||S.mode==='over'||S.mode==='paused')beginOrResume();
+    }
+  });
+  el.shareBtn.addEventListener('click',async()=>{
+    const f=fictionalResult(S.score);
+    const line='ムラッ！ラッシュ ⚡ '+S.score.toLocaleString('ja-JP')+'点！\n射精量：'+f.volume+'mL（妄想）／飛距離：'+f.distance+'m（妄想）\n【'+f.rank+'】 '+f.joke+'\n君は超えられる？';
+    const url=location.origin+location.pathname;
+    try{
+      if(navigator.share){await navigator.share({title:'ムラッ！ラッシュ',text:line,url});return}
+      if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(line+'\n'+url)}
+      else{const t=document.createElement('textarea');t.value=line+'\n'+url;document.body.append(t);t.select();document.execCommand('copy');t.remove()}
+      el.shareBtn.textContent='✅ コピーしたよ！';
+      setTimeout(()=>el.shareBtn.textContent='📤 結果を共有',1500);
+    }catch(e){if(e.name!=='AbortError')el.shareBtn.textContent='コピーできませんでした'}
+  });
   document.addEventListener('visibilitychange',()=>{
-    if(document.hidden&&(S.mode==='playing'||S.mode==='countdown')){
-      clearTimer();S.mode='paused';S.kind=null;S.used=true;S.swipe=null;el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');setSignal('一時停止','wait','タブに戻ったら再開できます');el.startBtn.textContent='▶ 再開';el.quickStart.hidden=false;el.quickStart.textContent='▶ タップして再開！';setMessage('ゲームを一時停止しました');
+    if(document.hidden && (S.mode==='playing'||S.mode==='countdown')){
+      clearTimer();S.mode='paused';S.kind=null;S.used=true;S.swipe=null;
+      el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');
+      cue('一時停止','wait','ボタンで再開できるよ');
+      el.quickStart.hidden=false;el.quickStart.textContent='▶ 再開する';
+      el.startBtn.textContent='▶ 再開';setMessage('一時停止中（減点なし）');
     }
   });
   reset();
