@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1b1537">
   <meta name="description" content="ムラッ！で上スワイプ。シュン…は我慢！じわじわ高速化する、おバカなリズム反射神経ゲーム。">
-  <title>ムラッ！ラッシュ v1.2 | おバカなスワイプゲーム</title>
+  <title>ムラッ！ラッシュ v1.3 | おバカなスワイプゲーム</title>
   <style>
     :root{color-scheme:dark;--bg:#151127;--panel:#241c41;--panel2:#2c224b;--ink:#fff8fb;--dim:#baacce;--pink:#ff5dba;--pinklite:#ffc3e6;--lime:#bafa69;--danger:#fca7a7;--gold:#ffdc78}
     *,*:before,*:after{box-sizing:border-box}
@@ -111,6 +111,29 @@
     .help{font-size:12px;line-height:1.55;text-align:center;color:#e5cce7;margin:0;padding:4px 8px}
     .help strong{color:#d7ff90}
     @media(max-height:700px){.mascot,.mascot svg{height:136px}.signalWrap{min-height:125px;flex-basis:125px}.tempo{margin-top:19px}.arena{min-height:398px;height:398px;max-height:none}.learn span{padding:7px 5px}}
+    /* v1.3: first-screen start affordance, no need to scroll into Safari toolbar */
+    .topStart{display:block;width:100%;min-height:56px;margin:10px 0 11px;border:2px solid #ffe0b5;border-radius:16px;background:linear-gradient(180deg,#ffb9e4,#ff5bb7);color:#35152f;font-size:19px;font-weight:1000;box-shadow:0 5px 0 #a52b79;touch-action:manipulation;cursor:pointer;position:relative;z-index:4}
+    .topStart:active{transform:translateY(3px);box-shadow:0 2px 0 #a52b79}
+    .topStart[hidden]{display:none!important}
+    @media(max-width:600px){
+      body{padding-top:calc(7px + env(safe-area-inset-top));padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+      .app{gap:7px}.board{padding:12px}.brand{padding:2px 0}
+      .eyebrow{font-size:9px}.sub{font-size:11px}
+      .stats{margin-bottom:8px;gap:6px}.stat{padding:6px 4px}.stat .v{font-size:19px}
+      .meter{height:21px}.learn{margin-bottom:6px}.learn span{padding:8px 4px}
+      .arena{height:min(39dvh,350px);min-height:320px;margin-top:7px}
+      .tempo{margin-top:10px;padding:5px 10px}.signalWrap{min-height:92px;flex-basis:92px}
+      .signal{font-size:clamp(37px,10vw,55px)}.signal.wait{font-size:35px}
+      .mascot{width:118px;height:120px}.mascot svg{width:118px;height:120px}
+      .arenaBottom{margin-bottom:8px;padding:5px 8px;font-size:11px}
+      .topStart{margin:8px 0;font-size:19px}
+    }
+    @media(max-height:700px) and (max-width:600px){
+      .arena{height:300px;min-height:300px}
+      .mascot,.mascot svg{height:108px}
+      .signalWrap{min-height:82px;flex-basis:82px}
+      h1{font-size:29px}.brand .sub{font-size:10px}
+    }
 </style>
 </head>
 <body>
@@ -129,6 +152,7 @@
     </div>
     <div class="meterlabel"><span>🔥 射精ゲージ</span><strong id="gaugeText">0 / 100</strong></div>
     <div class="meter" role="progressbar" aria-label="射精ゲージ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="meter"><div class="meterfill" id="meterFill"></div></div>
+    <button id="quickStart" class="topStart" type="button">▶ ここを押してスタート！</button>
     <div class="learn" aria-label="ルール"><span class="go">🟢 ムラッ！<br>上にシュッ ↑</span><span class="stop">🟣 シュン…<br>じっと我慢 ✋</span></div>
     <div class="arena" id="arena" aria-label="緑色のムラッで上スワイプ。紫のシュンでは停止" tabindex="0">
       <div class="beatTrack" aria-hidden="true"><div class="beatFill" id="beatFill"></div></div>
@@ -180,7 +204,7 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const el = Object.fromEntries(['combo','score','best','lives','gaugeText','meter','meterFill','arena','tempo','signal','hint','mascot','fx','result','resultEmoji','resultTitle','resultDesc','retryBtn','message','startBtn','actionBtn','soundBtn','beatFill','cueIcon'].map(id => [id,$(id)]));
+  const el = Object.fromEntries(['combo','score','best','lives','gaugeText','meter','meterFill','arena','tempo','signal','hint','mascot','fx','result','resultEmoji','resultTitle','resultDesc','retryBtn','message','startBtn','quickStart','actionBtn','soundBtn','beatFill','cueIcon'].map(id => [id,$(id)]));
   const BEST_KEY = 'mura-rush-best-v1';
   const S = {mode:'idle',gauge:0,combo:0,score:0,best:0,lives:3,kind:null,used:false,turn:0,lastKind:null,repeats:0,timer:null,sound:true,audio:null,swipe:null};
   try{S.best=Number(localStorage.getItem(BEST_KEY))||0}catch(e){S.best=0}
@@ -219,14 +243,14 @@
   function reset(){
     clearTimer();el.result.classList.remove('show');el.result.setAttribute('aria-hidden','true');el.mascot.classList.remove('dance','bop','oops');el.arena.classList.remove('wrong');
     S.mode='idle';S.gauge=0;S.combo=0;S.score=0;S.lives=3;S.kind=null;S.used=false;S.turn=0;S.lastKind=null;S.repeats=0;
-    el.startBtn.textContent='▶ ゲームスタート！';el.startBtn.disabled=false;el.fx.replaceChildren();el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');el.cueIcon.textContent='🟢 ↑ / 🟣 ✋';update();setSignal('READY?','wait','緑のムラッ！が出たら上スワイプ！');
+    el.startBtn.textContent='▶ ゲームスタート！';el.startBtn.disabled=false;el.quickStart.hidden=false;el.quickStart.textContent='▶ ここを押してスタート！';el.fx.replaceChildren();el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');el.cueIcon.textContent='🟢 ↑ / 🟣 ✋';update();setSignal('READY?','wait','この枠をタップしてもスタート！');
   }
   function countdown(n){
     if(S.mode!=='countdown')return;
     if(n===0){S.mode='playing';setMessage('ムラッ！を狙え！');step();return}
     setSignal(n,'wait','まもなくスタート！');el.cueIcon.textContent='準備！';tone(330+n*90,.1,'triangle',.035);S.timer=setTimeout(()=>countdown(n-1),700);
   }
-  function start(){reset();S.mode='countdown';el.startBtn.textContent='リスタート';setMessage('3、2、1…');countdown(3)}
+  function start(){reset();S.mode='countdown';el.quickStart.hidden=true;el.startBtn.textContent='リスタート';setMessage('3、2、1…');countdown(3)}
   function chooseKind(){
     if(S.turn<6)return ['hit','trap','hit','trap','hit','hit'][S.turn];
     let kind=Math.random()<.56?'hit':'trap';
@@ -265,7 +289,7 @@
     }
   }
   function finish(won){
-    clearTimer();S.mode=won?'win':'over';S.kind=null;el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');el.startBtn.textContent='▶ もう１回！';el.startBtn.disabled=false;
+    clearTimer();S.mode=won?'win':'over';S.kind=null;el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');el.startBtn.textContent='▶ もう１回！';el.startBtn.disabled=false;el.quickStart.hidden=false;el.quickStart.textContent='▶ もう一度スタート！';
     if(S.score>S.best){S.best=S.score;try{localStorage.setItem(BEST_KEY,String(S.best))}catch(e){}}
     update();el.resultEmoji.textContent=won?'🚀🎉':'😵‍💫';
     el.resultTitle.textContent=won?'射精成功！':'しゅん…終了！';
@@ -301,6 +325,7 @@
     try{el.arena.setPointerCapture(e.pointerId)}catch(e){}
   });
   el.arena.addEventListener('pointerup',e=>{
+    if(['idle','paused','over','win'].includes(S.mode)){beginOrResume();return}
     if(!S.swipe||S.swipe.id!==e.pointerId)return;
     const {x,y,t,turn}=S.swipe;S.swipe=null;
     const dy=e.clientY-y,dx=e.clientX-x,dt=performance.now()-t;
@@ -309,19 +334,26 @@
     }
   });
   el.arena.addEventListener('pointercancel',()=>{S.swipe=null});
+  el.arena.addEventListener('click',()=>{if(['idle','paused','over','win'].includes(S.mode))beginOrResume()});
   document.addEventListener('keydown',e=>{
     const target=e.target;
     if((e.code==='ArrowUp'||e.code==='Space')&&!['BUTTON','INPUT','TEXTAREA'].includes(target?.tagName)){
       e.preventDefault();if(S.mode==='playing')action();else if(S.mode==='idle'||S.mode==='win'||S.mode==='over')start();
     }
   });
-  el.startBtn.addEventListener('click',()=>{if(S.mode==='paused'){S.mode='countdown';el.startBtn.textContent='リスタート';countdown(2)}else{maxCombo=0;start()}});
+  function beginOrResume(){
+    if(S.mode==='countdown'||S.mode==='playing')return;
+    if(S.mode==='paused'){S.mode='countdown';el.quickStart.hidden=true;el.startBtn.textContent='リスタート';countdown(2)}
+    else{maxCombo=0;start()}
+  }
+  el.startBtn.addEventListener('click',beginOrResume);
+  el.quickStart.addEventListener('click',beginOrResume);
   el.retryBtn.addEventListener('click',()=>{maxCombo=0;start()});
   el.actionBtn.addEventListener('click',action);
   el.soundBtn.addEventListener('click',()=>{S.sound=!S.sound;el.soundBtn.textContent=S.sound?'🔊 ON':'🔇 OFF';el.soundBtn.setAttribute('aria-pressed',String(S.sound));if(S.sound)tone(700,.09)});
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden&&(S.mode==='playing'||S.mode==='countdown')){
-      clearTimer();S.mode='paused';S.kind=null;S.used=true;S.swipe=null;el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');setSignal('一時停止','wait','タブに戻ったら再開できます');el.startBtn.textContent='▶ 再開';setMessage('ゲームを一時停止しました');
+      clearTimer();S.mode='paused';S.kind=null;S.used=true;S.swipe=null;el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');setSignal('一時停止','wait','タブに戻ったら再開できます');el.startBtn.textContent='▶ 再開';el.quickStart.hidden=false;el.quickStart.textContent='▶ タップして再開！';setMessage('ゲームを一時停止しました');
     }
   });
   reset();
