@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1b1537">
+  <meta name="description" content="ムラッ！で上スワイプ。シュン…は我慢！じわじわ高速化する、おバカなリズム反射神経ゲーム。">
+  <title>ムラッ！ラッシュ | おバカなスワイプゲーム</title>
+  <style>
+    :root{color-scheme:dark;--bg:#151127;--panel:#241c41;--panel2:#2c224b;--ink:#fff8fb;--dim:#baacce;--pink:#ff5dba;--pinklite:#ffc3e6;--lime:#bafa69;--danger:#fca7a7;--gold:#ffdc78}
+    *,*:before,*:after{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:ui-rounded,'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,system-ui,sans-serif;color:var(--ink);background:radial-gradient(ellipse at 50% -20%,#63376d 0%,var(--bg) 58%,#101027 100%);-webkit-tap-highlight-color:transparent}
+    body{min-height:100dvh;display:flex;justify-content:center;padding:calc(14px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));overflow-x:hidden}
+    button{font:inherit;cursor:pointer}
+    button:focus-visible{outline:3px solid var(--lime);outline-offset:3px}
+    .app{width:100%;max-width:510px;display:flex;flex-direction:column;gap:13px}
+    .brand{text-align:center;position:relative;padding:6px 0 2px}
+    .eyebrow{font-size:11px;letter-spacing:.23em;font-weight:900;color:var(--lime)}
+    h1{margin:0;font-size:clamp(29px,8vw,40px);font-weight:1000;letter-spacing:-.06em;text-shadow:3px 4px 0 #662456}
+    h1 b{color:var(--pink);font-weight:1000}
+    .sub{margin:3px 0 0;font-size:12px;color:var(--dim);font-weight:700}
+    .board{background:linear-gradient(160deg,#2d244f,#211936 80%);border:2px solid #59406c;border-radius:25px;padding:17px;box-shadow:0 19px 42px #0b092455,0 3px 0 #0f0b22;position:relative;isolation:isolate}
+    .stats{display:flex;gap:9px;justify-content:space-between;margin-bottom:12px}
+    .stat{background:#17132e;border:1px solid #514366;border-radius:12px;padding:8px 10px;min-width:0;flex:1;text-align:center}
+    .stat .k{font-size:10px;color:#bdb1d4;font-weight:800;letter-spacing:.08em}
+    .stat .v{font-size:21px;font-weight:1000;line-height:1.35;font-variant-numeric:tabular-nums}
+    .stat .v small{font-size:12px;color:var(--dim)}
+    .meterlabel{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:900;margin-bottom:8px;color:var(--pinklite)}
+    .meterlabel strong{font-size:16px;color:white;font-variant-numeric:tabular-nums}
+    .meter{height:24px;padding:4px;background:#110d22;border-radius:99px;border:1px solid #5b4470;box-shadow:inset 0 2px 4px #05031066;overflow:hidden}
+    .meterfill{position:relative;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#ff6bb4,#ffb267 65%,#ffec7d);box-shadow:0 0 15px #ff54aa7a;transition:width .19s cubic-bezier(.2,1,.2,1)}
+    .meterfill:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 10px,#fff5 11px 15px,transparent 16px 25px);animation:stripe 1.5s linear infinite}
+    @keyframes stripe{to{background-position:70px 0}}
+    .arena{margin-top:14px;position:relative;min-height:345px;height:min(46dvh,420px);max-height:430px;background:radial-gradient(circle at 50% 40%,#60456d 0%,#382954 36%,#211a39 70%);border:2px solid #715a86;border-radius:23px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+    .arena:active{cursor:grabbing}
+    .arena:before{content:"";position:absolute;width:330px;height:330px;border:2px dashed #ffffff12;border-radius:50%;top:-80px;left:calc(50% - 165px);pointer-events:none}
+    .arena:after{content:"";position:absolute;left:-20%;bottom:-125px;width:140%;height:190px;background:linear-gradient(180deg,transparent,#7e3b7670);border-radius:50%;pointer-events:none}
+    .tempo{margin-top:13px;font-size:11px;color:#decfe7;background:#1a122d94;border:1px solid #5d466c;border-radius:99px;padding:7px 12px;z-index:1;letter-spacing:.06em;font-weight:900}
+    .signalWrap{z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:102px;position:relative}
+    .signal{font-size:clamp(40px,11vw,66px);font-weight:1000;letter-spacing:-.07em;line-height:1.22;transform:scale(1);text-align:center;filter:drop-shadow(0 7px 0 #1a1028);white-space:nowrap}
+    .signal.ready{color:var(--lime);text-shadow:0 0 30px #bbff8c66;animation:punch .23s cubic-bezier(.16,1.8,.65,1) both}
+    .signal.nope{color:#a99bb9;animation:fadeIn .16s ease both}
+    .signal.wait{color:#ffffffd8;font-size:40px}
+    .signal.good{color:var(--gold);animation:punch .22s ease both}
+    .hint{font-size:12px;color:#e5d8ec;letter-spacing:.06em;font-weight:800;min-height:18px;text-align:center}
+    @keyframes punch{from{transform:scale(.7) rotate(-5deg);opacity:.6}to{transform:scale(1) rotate(0);opacity:1}}
+    @keyframes fadeIn{from{transform:scale(.95);opacity:.4}to{transform:scale(1);opacity:1}}
+    .mascot{position:relative;z-index:2;width:126px;height:148px;display:flex;align-items:center;justify-content:center;transform-origin:center bottom;transition:transform .12s ease;filter:drop-shadow(0 13px 0 #120d2645)}
+    .mascot svg{width:120px;height:148px;overflow:visible}
+    .mascot.bop{transform:translateY(-16px) rotate(-7deg) scale(1.1)}
+    .mascot.oops{transform:rotate(13deg) translateY(13px) scale(.94)}
+    .mascot.dance{animation:dance .35s ease-in-out infinite alternate}
+    @keyframes dance{to{transform:translateY(-15px) rotate(8deg)}}
+    .arenaBottom{z-index:2;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:13px;padding:0 10px;text-align:center;font-size:12px;color:#f5d7ea;font-weight:900}
+    .swipeGlyph{width:30px;height:45px;border:2px solid #dfc7ec;border-radius:19px;position:relative;display:grid;place-items:center;font-size:21px}
+    .swipeGlyph:before{content:"↑";position:absolute;top:-16px;left:6px;font-size:23px;color:var(--lime);animation:up 1.15s ease-in-out infinite}
+    @keyframes up{0%,100%{transform:translateY(7px);opacity:.4}60%{transform:translateY(-3px);opacity:1}}
+    .message{min-height:22px;text-align:center;font-size:13px;font-weight:900;color:var(--pinklite)}
+    .actions{display:flex;gap:10px;align-items:stretch;margin-top:4px}
+    .bigBtn{flex:1;min-height:54px;border:0;border-radius:15px;background:linear-gradient(180deg,#ff8ad1,#ff55ac);color:#381332;font-weight:1000;font-size:17px;box-shadow:0 5px 0 #a72d75,0 7px 18px #ff4ca345;transition:transform .12s;touch-action:manipulation}
+    .bigBtn:active{transform:translateY(4px);box-shadow:0 1px 0 #a72d75}
+    .bigBtn:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+    .smallBtn{min-width:60px;border:1px solid #76628b;background:#302547;border-radius:14px;color:#eaddef;font-weight:900;font-size:13px;padding:0 12px;touch-action:manipulation}
+    .footer{color:#bbaacb;text-align:center;font-size:11px;line-height:1.7;padding:2px 12px}
+    .footer span{color:#bafa69}
+    .resultOverlay{position:fixed;inset:0;background:#110d22eb;z-index:100;display:none;align-items:center;justify-content:center;text-align:center;padding:18px;backdrop-filter:blur(7px)}
+    .resultOverlay.show{display:flex}
+    .resultCard{display:flex;flex-direction:column;align-items:center;justify-content:center;width:min(420px,100%);background:radial-gradient(circle at 50% 0%,#613f75,#32254d 72%);border:2px solid #e77ac3;border-radius:28px;box-shadow:0 15px 80px #0008,0 0 34px #ff7abe33;padding:30px 18px 34px}
+    .resultOverlay .iconic{font-size:61px;line-height:1.3}
+    .resultOverlay h2{font-size:clamp(29px,8vw,44px);margin:7px 0;color:var(--gold);line-height:1.3}
+    .resultOverlay p{font-size:14px;line-height:1.9;color:#f2dce9;margin:2px 0 24px}
+    .resultOverlay .bigBtn{flex:0 0 auto;min-width:200px;min-height:58px;padding:13px 24px}
+    .fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:8}
+    .particle{position:absolute;top:32%;left:50%;width:9px;height:16px;border-radius:3px;opacity:0;animation:particle var(--dur) cubic-bezier(.15,.7,.3,1) forwards;background:var(--clr);transform:rotate(var(--rot))}
+    @keyframes particle{0%{opacity:1;transform:translate(0,0) rotate(0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) rotate(var(--rot)) scale(.7)}}
+    .arena.wrong{animation:shake .23s linear}
+    @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+    .rules{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px;font-size:11px;font-weight:900;color:#d8c4e7;text-align:center}
+    .rules i{font-style:normal;background:#32264e;border:1px solid #514466;border-radius:7px;padding:5px 8px}
+    @media (max-height:700px){.app{gap:7px}.board{padding:12px}.arena{min-height:290px;height:42dvh}.mascot,.mascot svg{height:118px}.brand{padding:0}h1{font-size:30px}.stat .v{font-size:18px}.arenaBottom{margin-bottom:6px}}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header class="brand">
+    <div class="eyebrow">THE MOST USELESS RHYTHM GAME</div>
+    <h1>ムラッ！<b>ラッシュ</b></h1>
+    <p class="sub">その一瞬、見逃すな。謎に本気になれるタイミングゲーム。</p>
+  </header>
+  <section class="board" aria-label="ゲーム">
+    <div class="stats" aria-label="ゲーム状況">
+      <div class="stat"><div class="k">コンボ</div><div id="combo" class="v">0<small> ×</small></div></div>
+      <div class="stat"><div class="k">スコア</div><div id="score" class="v">0</div></div>
+      <div class="stat"><div class="k">ベスト</div><div id="best" class="v">0</div></div>
+      <div class="stat"><div class="k">ミス残</div><div id="lives" class="v">3</div></div>
+    </div>
+    <div class="meterlabel"><span>🔥 射精ゲージ</span><strong id="gaugeText">0 / 100</strong></div>
+    <div class="meter" role="progressbar" aria-label="射精ゲージ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="meter"><div class="meterfill" id="meterFill"></div></div>
+    <div class="arena" id="arena" aria-label="ここを上にスワイプ" tabindex="0">
+      <div class="tempo" id="tempo">スピード：ふつう</div>
+      <div class="signalWrap"><div id="signal" class="signal wait" aria-live="off">READY?</div><div class="hint" id="hint">「ムラッ！」でだけ上へスワイプ！</div></div>
+      <div class="mascot" id="mascot" aria-hidden="true">
+        <!-- Non-explicit, goofy rocket mascot. All assets inline for offline play. -->
+        <svg viewBox="0 0 130 162" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="65" cy="155" rx="43" ry="8" fill="#140d2c" opacity=".32"/>
+          <path d="M26 102L7 123Q7 131 17 128L41 121Z" fill="#fda3cf" stroke="#2c153e" stroke-width="4"/>
+          <path d="M104 102L123 123Q123 131 113 128L89 121Z" fill="#fda3cf" stroke="#2c153e" stroke-width="4"/>
+          <path d="M65 7Q27 29 27 83Q27 124 45 143L85 143Q103 124 103 83Q103 29 65 7Z" fill="#ff90bf" stroke="#2b1a3f" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M66 8Q41 32 41 72Q40 104 53 128" fill="none" stroke="#ffd3e7" stroke-width="9" stroke-linecap="round" opacity=".7"/>
+          <circle cx="48" cy="74" r="6.5" fill="#241738"/><circle cx="81" cy="74" r="6.5" fill="#241738"/>
+          <ellipse cx="65" cy="92" rx="7" ry="9" fill="#52234b"/>
+          <ellipse cx="38" cy="91" rx="10" ry="5" fill="#fc5f8f" opacity=".7"/><ellipse cx="92" cy="91" rx="10" ry="5" fill="#fc5f8f" opacity=".7"/>
+          <path d="M45 143L36 156H55L60 145ZM70 145L75 156H94L85 143Z" fill="#ffcf5a" stroke="#2b1a3f" stroke-width="3"/>
+          <path d="M65 17L72 36L65 31L58 36Z" fill="#ffda87"/>
+        </svg>
+      </div>
+      <div class="arenaBottom"><span class="swipeGlyph" aria-hidden="true">●</span><span>スマホ：上スワイプ<br>PC：↑ / Space キー</span></div>
+      <div id="fx" class="fx" aria-hidden="true"></div>
+
+    </div>
+    <div class="message" id="message" aria-live="polite">スタートを押してね！</div>
+    <div class="actions">
+      <button id="startBtn" class="bigBtn" type="button">▶ ゲームスタート！</button>
+      <button id="actionBtn" class="smallBtn" type="button" aria-label="上スワイプの代わりにアクション">↑ 押す</button>
+      <button id="soundBtn" class="smallBtn" type="button" aria-pressed="true">🔊 ON</button>
+    </div>
+  </section>
+  <div class="rules"><i>💗 ムラッ！ → スワイプ成功</i><i>🫥 シュン… → 動くな！</i><i>⚡ 後半はどんどん高速</i></div>
+  <footer class="footer">おバカゲームにつき、真顔でのプレイは非推奨。<span>登録不要・オフラインOK</span>。<br>記録はこの端末にのみ保存されます。</footer>
+</main>
+<div class="resultOverlay" id="result" role="dialog" aria-modal="true" aria-label="ゲーム結果" aria-hidden="true">
+  <div class="resultCard">
+    <div class="iconic" id="resultEmoji">🎉</div><h2 id="resultTitle">大成功！</h2><p id="resultDesc"></p>
+    <button id="retryBtn" class="bigBtn" type="button">もう１回！</button>
+  </div>
+</div>
+<script>
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const el = Object.fromEntries(['combo','score','best','lives','gaugeText','meter','meterFill','arena','tempo','signal','hint','mascot','fx','result','resultEmoji','resultTitle','resultDesc','retryBtn','message','startBtn','actionBtn','soundBtn'].map(id => [id,$(id)]));
+  const BEST_KEY = 'mura-rush-best-v1';
+  const S = {mode:'idle',gauge:0,combo:0,score:0,best:0,lives:3,kind:null,used:false,turn:0,lastKind:null,repeats:0,timer:null,sound:true,audio:null,swipe:null};
+  try{S.best=Number(localStorage.getItem(BEST_KEY))||0}catch(e){S.best=0}
+  const rand = (a,b)=>a+Math.random()*(b-a);
+  const clearTimer=()=>{clearTimeout(S.timer);S.timer=null};
+  const setMessage=t=>{el.message.textContent=t};
+  const pulse=(cls)=>{el.mascot.classList.remove('bop','oops');void el.mascot.offsetWidth;el.mascot.classList.add(cls);setTimeout(()=>el.mascot.classList.remove(cls),210)};
+  function tone(freq,duration=.09,type='sine',gain=.06,delay=0){
+    if(!S.sound)return;
+    try{
+      const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
+      S.audio ||= new Audio();
+      if(S.audio.state==='suspended')S.audio.resume().catch(()=>{});
+      const ctx=S.audio,osc=ctx.createOscillator(),vol=ctx.createGain(),t=ctx.currentTime+delay;
+      osc.type=type;osc.frequency.setValueAtTime(freq,t);osc.frequency.exponentialRampToValueAtTime(Math.max(70,freq*.88),t+duration);
+      vol.gain.setValueAtTime(.001,t);vol.gain.linearRampToValueAtTime(gain,t+.007);vol.gain.exponentialRampToValueAtTime(.001,t+duration);
+      osc.connect(vol);vol.connect(ctx.destination);osc.start(t);osc.stop(t+duration+.01);
+    }catch(e){}
+  }
+  function vibrate(ms){try{if(navigator.vibrate)navigator.vibrate(ms)}catch(e){}}
+  function update(){
+    el.combo.innerHTML=String(S.combo)+'<small> ×</small>';
+    el.score.textContent=S.score.toLocaleString('ja-JP');
+    el.best.textContent=S.best.toLocaleString('ja-JP');
+    el.lives.textContent=String(S.lives);
+    el.gaugeText.textContent=S.gauge+' / 100';
+    el.meterFill.style.width=S.gauge+'%';
+    el.meter.setAttribute('aria-valuenow',String(S.gauge));
+    let ms=interval();
+    el.tempo.textContent = 'スピード：'+ (ms>680?'ふつう':ms>520?'はやい':ms>380?'激はや':'鬼') + ' 🔥';
+  }
+  function interval(){return Math.max(295, Math.round(900 - 605*Math.pow(S.gauge/100,1.17)))}
+  function setSignal(text,cls,hint=''){
+    el.signal.className='signal '+cls;el.signal.textContent=text;el.hint.textContent=hint;
+  }
+  function reset(){
+    clearTimer();el.result.classList.remove('show');el.result.setAttribute('aria-hidden','true');el.mascot.classList.remove('dance','bop','oops');el.arena.classList.remove('wrong');
+    S.mode='idle';S.gauge=0;S.combo=0;S.score=0;S.lives=3;S.kind=null;S.used=false;S.turn=0;S.lastKind=null;S.repeats=0;
+    el.startBtn.textContent='▶ ゲームスタート！';el.startBtn.disabled=false;el.fx.replaceChildren();update();setSignal('READY?','wait','「ムラッ！」でだけ上へスワイプ！');
+  }
+  function countdown(n){
+    if(S.mode!=='countdown')return;
+    if(n===0){S.mode='playing';setMessage('ムラッ！を狙え！');step();return}
+    setSignal(n,'wait','まもなくスタート！');tone(330+n*90,.1,'triangle',.035);S.timer=setTimeout(()=>countdown(n-1),550);
+  }
+  function start(){reset();S.mode='countdown';el.startBtn.textContent='リスタート';setMessage('3、2、1…');countdown(3)}
+  function chooseKind(){
+    let kind=Math.random()<.55?'hit':'trap';
+    if(kind===S.lastKind&&S.repeats>=2)kind=kind==='hit'?'trap':'hit';
+    S.repeats=kind===S.lastKind?S.repeats+1:1;S.lastKind=kind;
+    return kind;
+  }
+  function step(){
+    if(S.mode!=='playing')return;
+    S.kind=chooseKind();S.used=false;S.turn++;
+    const isHit=S.kind==='hit';
+    setSignal(isHit?'ムラッ！':'シュン…',isHit?'ready':'nope',isHit?'今だ！ 上にスワイプ！':'我慢！ スワイプ禁止');
+    tone(isHit?570:245,.045,'sine',.016);
+    const duration=interval();
+    update();
+    S.timer=setTimeout(step,duration);
+  }
+  function burst(count=18){
+    const colors=['#ff6abb','#fff08b','#c8ff8a','#70e6ff','#ff9c70','#e6b5ff'];
+    for(let i=0;i<count;i++){
+      const node=document.createElement('span');node.className='particle';
+      const theta=rand(0,2*Math.PI),r=rand(80,210);
+      node.style.cssText=`--tx:${Math.cos(theta)*r}px;--ty:${Math.sin(theta)*r}px;--rot:${rand(-700,700)}deg;--dur:${rand(.55,1.3)}s;--clr:${colors[i%colors.length]};top:${rand(28,65)}%;left:${rand(40,60)}%`;
+      el.fx.append(node);node.addEventListener('animationend',()=>node.remove(),{once:true});
+    }
+  }
+  function finish(won){
+    clearTimer();S.mode=won?'win':'over';S.kind=null;el.startBtn.textContent='▶ もう１回！';el.startBtn.disabled=false;
+    if(S.score>S.best){S.best=S.score;try{localStorage.setItem(BEST_KEY,String(S.best))}catch(e){}}
+    update();el.resultEmoji.textContent=won?'🚀🎉':'😵‍💫';
+    el.resultTitle.textContent=won?'射精成功！':'しゅん…終了！';
+    el.resultDesc.textContent=(won?'おめでとう！ よくぞ耐え抜いた！':'ミス３回！ 次こそタイミングを見極めよう！')+'\nスコア：'+S.score.toLocaleString('ja-JP')+'点　最大コンボ：'+maxCombo;
+    el.resultDesc.style.whiteSpace='pre-line';el.result.classList.add('show');el.result.setAttribute('aria-hidden','false');
+    if(won){el.mascot.classList.add('dance');burst(80);tone(523,.15,'triangle',.065);tone(659,.16,'triangle',.065,.14);tone(784,.24,'triangle',.065,.3);setMessage('🏆 大・成・功！')}
+    else{tone(240,.25,'sawtooth',.035);setMessage('🥀 もう一度チャレンジ！')}
+  }
+  let maxCombo=0;
+  function action(){
+    if(S.mode!=='playing')return;
+    if(S.used){setMessage('次の表示を待って！');return}
+    S.used=true;
+    if(S.kind==='hit'){
+      S.combo++;maxCombo=Math.max(maxCombo,S.combo);S.gauge=Math.min(100,S.gauge+10);S.score+=100+(S.combo-1)*20;update();pulse('bop');vibrate(24);
+      setMessage('💗 ナイス！ ＋10　'+(S.combo>1?S.combo+'コンボ！':'成功！'));
+      tone(520+Math.min(S.combo,9)*44,.085,'triangle',.07);
+      burst(3);
+      if(S.gauge>=100){finish(true);return}
+    }else{
+      S.lives--;S.combo=0;S.gauge=Math.max(0,S.gauge-6);update();pulse('oops');vibrate([65,35,65]);
+      el.arena.classList.remove('wrong');void el.arena.offsetWidth;el.arena.classList.add('wrong');
+      setMessage('💀 シュン…で動いた！ 残り'+S.lives+'ミス');tone(165,.21,'sawtooth',.04);
+      if(S.lives<=0){finish(false);return}
+    }
+  }
+  el.arena.addEventListener('pointerdown',e=>{
+    if(S.mode!=='playing')return;
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    S.swipe={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId};
+    try{el.arena.setPointerCapture(e.pointerId)}catch(e){}
+  });
+  el.arena.addEventListener('pointerup',e=>{
+    if(!S.swipe||S.swipe.id!==e.pointerId)return;
+    const {x,y,t}=S.swipe;S.swipe=null;
+    const dy=e.clientY-y,dx=e.clientX-x,dt=performance.now()-t;
+    if(dy < -42 && Math.abs(dy)>Math.abs(dx)*1.2 && dt<850)action();
+  });
+  el.arena.addEventListener('pointercancel',()=>{S.swipe=null});
+  document.addEventListener('keydown',e=>{
+    const target=e.target;
+    if((e.code==='ArrowUp'||e.code==='Space')&&!['BUTTON','INPUT','TEXTAREA'].includes(target?.tagName)){
+      e.preventDefault();if(S.mode==='playing')action();else if(S.mode==='idle'||S.mode==='win'||S.mode==='over')start();
+    }
+  });
+  el.startBtn.addEventListener('click',()=>{if(S.mode==='paused'){S.mode='countdown';el.startBtn.textContent='リスタート';countdown(2)}else{maxCombo=0;start()}});
+  el.retryBtn.addEventListener('click',()=>{maxCombo=0;start()});
+  el.actionBtn.addEventListener('click',action);
+  el.soundBtn.addEventListener('click',()=>{S.sound=!S.sound;el.soundBtn.textContent=S.sound?'🔊 ON':'🔇 OFF';el.soundBtn.setAttribute('aria-pressed',String(S.sound));if(S.sound)tone(700,.09)});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden&&(S.mode==='playing'||S.mode==='countdown')){
+      clearTimer();S.mode='paused';S.kind=null;S.used=true;S.swipe=null;setSignal('一時停止','wait','タブに戻ったら再開できます');el.startBtn.textContent='▶ 再開';setMessage('ゲームを一時停止しました');
+    }
+  });
+  reset();
+})();
+</script>
+</body>
+</html>
