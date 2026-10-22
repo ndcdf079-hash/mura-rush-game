@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#1b1537">
   <meta name="description" content="ムラッ！で上スワイプ。シュン…は我慢！じわじわ高速化する、おバカなリズム反射神経ゲーム。">
-  <title>ムラッ！ラッシュ | おバカなスワイプゲーム</title>
+  <title>ムラッ！ラッシュ v1.2 | おバカなスワイプゲーム</title>
   <style>
     :root{color-scheme:dark;--bg:#151127;--panel:#241c41;--panel2:#2c224b;--ink:#fff8fb;--dim:#baacce;--pink:#ff5dba;--pinklite:#ffc3e6;--lime:#bafa69;--danger:#fca7a7;--gold:#ffdc78}
     *,*:before,*:after{box-sizing:border-box}
@@ -79,14 +79,46 @@
     .rules i{font-style:normal;background:#32264e;border:1px solid #514466;border-radius:7px;padding:5px 8px}
     @media (max-height:700px){.app{gap:7px}.board{padding:12px}.arena{min-height:290px;height:42dvh}.mascot,.mascot svg{height:118px}.brand{padding:0}h1{font-size:30px}.stat .v{font-size:18px}.arenaBottom{margin-bottom:6px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
-  </style>
+  
+    /* v1.2: readable beat, green swipe / purple hold, friendly silhouette */
+    .learn{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
+    .learn span{padding:11px 7px;text-align:center;border-radius:13px;font-size:clamp(12px,3.4vw,15px);font-weight:1000;line-height:1.4}
+    .learn .go{background:#244e37;color:#d9ff91;border:2px solid #7be285}
+    .learn .stop{background:#463358;color:#f7e3ff;border:2px solid #a383c4}
+    .arena.hit-mode{background:radial-gradient(circle at 50% 38%,#347e68 0%,#23584b 51%,#193e40 100%);border-color:#94f58a;box-shadow:inset 0 0 55px #6cffa426}
+    .arena.trap-mode{background:radial-gradient(circle at 50% 38%,#644472 0%,#35294e 60%,#281e3c 100%);border-color:#9576ac}
+    .arena.hit-mode .signal{color:#e4ff8c;text-shadow:0 0 18px #caff6b66,0 6px 0 #193e32}
+    .arena.trap-mode .signal{color:#f5defd;text-shadow:0 6px 0 #241831}
+    .signalWrap{flex:0 0 130px;min-height:130px;gap:2px}
+    .signal{font-size:clamp(40px,10.5vw,56px);line-height:1.1}
+    .cueIcon{font-size:20px;font-weight:1000;padding:4px 16px;border-radius:99px;background:#110d2280;color:#fff;min-height:31px;line-height:24px}
+    .arena.hit-mode .cueIcon{background:#c2ff71;color:#16351f;animation:cuePop .15s ease-out}
+    .arena.trap-mode .cueIcon{background:#a38cad;color:#25172f}
+    @keyframes cuePop{from{transform:scale(.75)}to{transform:scale(1)}}
+    .beatTrack{position:absolute;top:8px;left:14px;right:14px;height:9px;border:1px solid #ffffff6b;background:#120f227c;border-radius:99px;overflow:hidden;z-index:5}
+    .beatFill{height:100%;background:#d4ffa1;width:100%;transform-origin:left;transform:scaleX(1)}
+    .arena.trap-mode .beatFill{background:#cdb0df}
+    .beatFill.running{animation:beatDrain var(--beat-ms,1200ms) linear forwards}
+    @keyframes beatDrain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+    .mascot{width:145px;height:152px;flex-shrink:0}
+    .mascot svg{width:145px;height:152px}
+    .arenaBottom{flex-shrink:0;font-size:12px;background:#15142d77;border-radius:13px;padding:7px 10px;line-height:1.35}
+    .message{font-size:14px;min-height:23px}
+    .tempo{margin-top:21px;flex-shrink:0}
+    .arena.hit-mode .swipeGlyph:before{animation-duration:.58s}
+    .arena.trap-mode .swipeGlyph:before{animation-play-state:paused;opacity:.2}
+    .arena{min-height:420px;height:420px;max-height:none}
+    .help{font-size:12px;line-height:1.55;text-align:center;color:#e5cce7;margin:0;padding:4px 8px}
+    .help strong{color:#d7ff90}
+    @media(max-height:700px){.mascot,.mascot svg{height:136px}.signalWrap{min-height:125px;flex-basis:125px}.tempo{margin-top:19px}.arena{min-height:398px;height:398px;max-height:none}.learn span{padding:7px 5px}}
+</style>
 </head>
 <body>
 <main class="app">
   <header class="brand">
     <div class="eyebrow">THE MOST USELESS RHYTHM GAME</div>
     <h1>ムラッ！<b>ラッシュ</b></h1>
-    <p class="sub">その一瞬、見逃すな。謎に本気になれるタイミングゲーム。</p>
+    <p class="sub">緑でシュッ！ 紫なら我慢！ まずはゆっくり、最後は高速！</p>
   </header>
   <section class="board" aria-label="ゲーム">
     <div class="stats" aria-label="ゲーム状況">
@@ -97,25 +129,33 @@
     </div>
     <div class="meterlabel"><span>🔥 射精ゲージ</span><strong id="gaugeText">0 / 100</strong></div>
     <div class="meter" role="progressbar" aria-label="射精ゲージ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="meter"><div class="meterfill" id="meterFill"></div></div>
-    <div class="arena" id="arena" aria-label="ここを上にスワイプ" tabindex="0">
+    <div class="learn" aria-label="ルール"><span class="go">🟢 ムラッ！<br>上にシュッ ↑</span><span class="stop">🟣 シュン…<br>じっと我慢 ✋</span></div>
+    <div class="arena" id="arena" aria-label="緑色のムラッで上スワイプ。紫のシュンでは停止" tabindex="0">
+      <div class="beatTrack" aria-hidden="true"><div class="beatFill" id="beatFill"></div></div>
       <div class="tempo" id="tempo">スピード：ふつう</div>
-      <div class="signalWrap"><div id="signal" class="signal wait" aria-live="off">READY?</div><div class="hint" id="hint">「ムラッ！」でだけ上へスワイプ！</div></div>
+      <div class="signalWrap"><div id="signal" class="signal wait" aria-live="off">READY?</div><div id="cueIcon" class="cueIcon">🟢 ↑ / 🟣 ✋</div><div class="hint" id="hint">緑が出たらすぐ上へ！</div></div>
       <div class="mascot" id="mascot" aria-hidden="true">
-        <!-- Non-explicit, goofy rocket mascot. All assets inline for offline play. -->
-        <svg viewBox="0 0 130 162" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <ellipse cx="65" cy="155" rx="43" ry="8" fill="#140d2c" opacity=".32"/>
-          <path d="M26 102L7 123Q7 131 17 128L41 121Z" fill="#fda3cf" stroke="#2c153e" stroke-width="4"/>
-          <path d="M104 102L123 123Q123 131 113 128L89 121Z" fill="#fda3cf" stroke="#2c153e" stroke-width="4"/>
-          <path d="M65 7Q27 29 27 83Q27 124 45 143L85 143Q103 124 103 83Q103 29 65 7Z" fill="#ff90bf" stroke="#2b1a3f" stroke-width="5" stroke-linejoin="round"/>
-          <path d="M66 8Q41 32 41 72Q40 104 53 128" fill="none" stroke="#ffd3e7" stroke-width="9" stroke-linecap="round" opacity=".7"/>
-          <circle cx="48" cy="74" r="6.5" fill="#241738"/><circle cx="81" cy="74" r="6.5" fill="#241738"/>
-          <ellipse cx="65" cy="92" rx="7" ry="9" fill="#52234b"/>
-          <ellipse cx="38" cy="91" rx="10" ry="5" fill="#fc5f8f" opacity=".7"/><ellipse cx="92" cy="91" rx="10" ry="5" fill="#fc5f8f" opacity=".7"/>
-          <path d="M45 143L36 156H55L60 145ZM70 145L75 156H94L85 143Z" fill="#ffcf5a" stroke="#2b1a3f" stroke-width="3"/>
-          <path d="M65 17L72 36L65 31L58 36Z" fill="#ffda87"/>
+        <!-- Silly pink mascot: rounded shaft, cap and two circular feet. Non-realistic vector. -->
+        <svg viewBox="0 0 180 210" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <ellipse cx="90" cy="196" rx="64" ry="9" fill="#120c2d" opacity=".31"/>
+          <path d="M65 116 Q35 104 24 124 Q18 132 24 138 Q45 148 67 128" fill="#f79fc3" stroke="#48233e" stroke-width="5" stroke-linecap="round"/>
+          <path d="M115 116 Q145 104 156 124 Q162 132 156 138 Q135 148 113 128" fill="#f79fc3" stroke="#48233e" stroke-width="5" stroke-linecap="round"/>
+          <ellipse cx="62" cy="166" rx="36" ry="32" fill="#f49abd" stroke="#48233e" stroke-width="5"/>
+          <ellipse cx="118" cy="166" rx="36" ry="32" fill="#f49abd" stroke="#48233e" stroke-width="5"/>
+          <path d="M59 55 C59 25 70 14 90 14 C110 14 121 25 121 55 L121 144 C121 162 109 174 90 174 C71 174 59 162 59 144 Z" fill="#ff95c1" stroke="#48233e" stroke-width="6"/>
+          <path d="M59 58 C51 36 67 13 90 13 C113 13 129 36 121 58 Q91 74 59 58 Z" fill="#ffc0d8" stroke="#48233e" stroke-width="5"/>
+          <path d="M67 58 Q91 68 113 58" fill="none" stroke="#dc689b" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="79" cy="102" rx="4.5" ry="5.5" fill="#3a2242"/>
+          <ellipse cx="102" cy="102" rx="4.5" ry="5.5" fill="#3a2242"/>
+          <path d="M84 119 Q91 125 98 119" fill="none" stroke="#9e3e75" stroke-width="4" stroke-linecap="round"/>
+          <ellipse cx="70" cy="116" rx="7" ry="3.5" fill="#f66e9f" opacity=".65"/>
+          <ellipse cx="111" cy="116" rx="7" ry="3.5" fill="#f66e9f" opacity=".65"/>
+          <path d="M68 72 Q64 118 72 149" fill="none" stroke="#ffdfeb" stroke-width="7" stroke-linecap="round" opacity=".5"/>
+          <ellipse cx="50" cy="159" rx="8" ry="5" fill="#ffd6e5" opacity=".47"/>
+          <ellipse cx="106" cy="160" rx="8" ry="5" fill="#ffd6e5" opacity=".35"/>
         </svg>
       </div>
-      <div class="arenaBottom"><span class="swipeGlyph" aria-hidden="true">●</span><span>スマホ：上スワイプ<br>PC：↑ / Space キー</span></div>
+      <div class="arenaBottom"><span class="swipeGlyph" aria-hidden="true">●</span><span>この枠内を上にシュッ！<br>PCは ↑ / Space /「↑ 押す」</span></div>
       <div id="fx" class="fx" aria-hidden="true"></div>
 
     </div>
@@ -126,7 +166,8 @@
       <button id="soundBtn" class="smallBtn" type="button" aria-pressed="true">🔊 ON</button>
     </div>
   </section>
-  <div class="rules"><i>💗 ムラッ！ → スワイプ成功</i><i>🫥 シュン… → 動くな！</i><i>⚡ 後半はどんどん高速</i></div>
+  <div class="rules"><i>✅ 緑＝１回スワイプ</i><i>⛔ 紫＝スワイプ禁止</i><i>⏱ 上のバーが次の合図までの時間</i></div>
+  <p class="help">最初の合図は必ず <strong>緑の「ムラッ！」</strong> 。画面の枠内を上に払えばOK！<br>緑を見逃してもミスにはならない。紫で動くとミス。３ミスで終了。</p>
   <footer class="footer">おバカゲームにつき、真顔でのプレイは非推奨。<span>登録不要・オフラインOK</span>。<br>記録はこの端末にのみ保存されます。</footer>
 </main>
 <div class="resultOverlay" id="result" role="dialog" aria-modal="true" aria-label="ゲーム結果" aria-hidden="true">
@@ -139,7 +180,7 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
-  const el = Object.fromEntries(['combo','score','best','lives','gaugeText','meter','meterFill','arena','tempo','signal','hint','mascot','fx','result','resultEmoji','resultTitle','resultDesc','retryBtn','message','startBtn','actionBtn','soundBtn'].map(id => [id,$(id)]));
+  const el = Object.fromEntries(['combo','score','best','lives','gaugeText','meter','meterFill','arena','tempo','signal','hint','mascot','fx','result','resultEmoji','resultTitle','resultDesc','retryBtn','message','startBtn','actionBtn','soundBtn','beatFill','cueIcon'].map(id => [id,$(id)]));
   const BEST_KEY = 'mura-rush-best-v1';
   const S = {mode:'idle',gauge:0,combo:0,score:0,best:0,lives:3,kind:null,used:false,turn:0,lastKind:null,repeats:0,timer:null,sound:true,audio:null,swipe:null};
   try{S.best=Number(localStorage.getItem(BEST_KEY))||0}catch(e){S.best=0}
@@ -169,36 +210,48 @@
     el.meterFill.style.width=S.gauge+'%';
     el.meter.setAttribute('aria-valuenow',String(S.gauge));
     let ms=interval();
-    el.tempo.textContent = 'スピード：'+ (ms>680?'ふつう':ms>520?'はやい':ms>380?'激はや':'鬼') + ' 🔥';
+    el.tempo.textContent = 'テンポ：'+(ms>1130?'練習（ゆっくり）':ms>960?'ふつう':ms>800?'はやい':ms>690?'激はや':'鬼')+'　♪';
   }
-  function interval(){return Math.max(295, Math.round(900 - 605*Math.pow(S.gauge/100,1.17)))}
+  function interval(){return Math.max(650, Math.round(1320 - 670*Math.pow(S.gauge/100,1.08)))}
   function setSignal(text,cls,hint=''){
     el.signal.className='signal '+cls;el.signal.textContent=text;el.hint.textContent=hint;
   }
   function reset(){
     clearTimer();el.result.classList.remove('show');el.result.setAttribute('aria-hidden','true');el.mascot.classList.remove('dance','bop','oops');el.arena.classList.remove('wrong');
     S.mode='idle';S.gauge=0;S.combo=0;S.score=0;S.lives=3;S.kind=null;S.used=false;S.turn=0;S.lastKind=null;S.repeats=0;
-    el.startBtn.textContent='▶ ゲームスタート！';el.startBtn.disabled=false;el.fx.replaceChildren();update();setSignal('READY?','wait','「ムラッ！」でだけ上へスワイプ！');
+    el.startBtn.textContent='▶ ゲームスタート！';el.startBtn.disabled=false;el.fx.replaceChildren();el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');el.cueIcon.textContent='🟢 ↑ / 🟣 ✋';update();setSignal('READY?','wait','緑のムラッ！が出たら上スワイプ！');
   }
   function countdown(n){
     if(S.mode!=='countdown')return;
     if(n===0){S.mode='playing';setMessage('ムラッ！を狙え！');step();return}
-    setSignal(n,'wait','まもなくスタート！');tone(330+n*90,.1,'triangle',.035);S.timer=setTimeout(()=>countdown(n-1),550);
+    setSignal(n,'wait','まもなくスタート！');el.cueIcon.textContent='準備！';tone(330+n*90,.1,'triangle',.035);S.timer=setTimeout(()=>countdown(n-1),700);
   }
   function start(){reset();S.mode='countdown';el.startBtn.textContent='リスタート';setMessage('3、2、1…');countdown(3)}
   function chooseKind(){
-    let kind=Math.random()<.55?'hit':'trap';
+    if(S.turn<6)return ['hit','trap','hit','trap','hit','hit'][S.turn];
+    let kind=Math.random()<.56?'hit':'trap';
     if(kind===S.lastKind&&S.repeats>=2)kind=kind==='hit'?'trap':'hit';
     S.repeats=kind===S.lastKind?S.repeats+1:1;S.lastKind=kind;
     return kind;
   }
   function step(){
     if(S.mode!=='playing')return;
+    if(S.turn>0 && S.kind==='hit' && !S.used){
+      S.combo=0;
+      setMessage('あっ、緑を見逃した！ 次の緑を狙おう');
+    }
     S.kind=chooseKind();S.used=false;S.turn++;
     const isHit=S.kind==='hit';
-    setSignal(isHit?'ムラッ！':'シュン…',isHit?'ready':'nope',isHit?'今だ！ 上にスワイプ！':'我慢！ スワイプ禁止');
-    tone(isHit?570:245,.045,'sine',.016);
+    el.arena.classList.toggle('hit-mode',isHit);
+    el.arena.classList.toggle('trap-mode',!isHit);
+    setSignal(isHit?'ムラッ！':'シュン…',isHit?'ready':'nope',isHit?'↑ 上スワイプ！':'✋ ストップ！');
+    el.cueIcon.textContent=isHit?'🟢 いま上へ！ ↑':'🟣 触らない！ ✋';
     const duration=interval();
+    el.beatFill.classList.remove('running');
+    void el.beatFill.offsetWidth;
+    el.beatFill.style.setProperty('--beat-ms',duration+'ms');
+    el.beatFill.classList.add('running');
+    tone(isHit?660:280,.09,isHit?'triangle':'sine',isHit?.05:.028);
     update();
     S.timer=setTimeout(step,duration);
   }
@@ -212,7 +265,7 @@
     }
   }
   function finish(won){
-    clearTimer();S.mode=won?'win':'over';S.kind=null;el.startBtn.textContent='▶ もう１回！';el.startBtn.disabled=false;
+    clearTimer();S.mode=won?'win':'over';S.kind=null;el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');el.startBtn.textContent='▶ もう１回！';el.startBtn.disabled=false;
     if(S.score>S.best){S.best=S.score;try{localStorage.setItem(BEST_KEY,String(S.best))}catch(e){}}
     update();el.resultEmoji.textContent=won?'🚀🎉':'😵‍💫';
     el.resultTitle.textContent=won?'射精成功！':'しゅん…終了！';
@@ -228,6 +281,7 @@
     S.used=true;
     if(S.kind==='hit'){
       S.combo++;maxCombo=Math.max(maxCombo,S.combo);S.gauge=Math.min(100,S.gauge+10);S.score+=100+(S.combo-1)*20;update();pulse('bop');vibrate(24);
+      el.cueIcon.textContent='✅ 成功！ ＋10';
       setMessage('💗 ナイス！ ＋10　'+(S.combo>1?S.combo+'コンボ！':'成功！'));
       tone(520+Math.min(S.combo,9)*44,.085,'triangle',.07);
       burst(3);
@@ -235,6 +289,7 @@
     }else{
       S.lives--;S.combo=0;S.gauge=Math.max(0,S.gauge-6);update();pulse('oops');vibrate([65,35,65]);
       el.arena.classList.remove('wrong');void el.arena.offsetWidth;el.arena.classList.add('wrong');
+      el.cueIcon.textContent='❌ 紫では止まって！';
       setMessage('💀 シュン…で動いた！ 残り'+S.lives+'ミス');tone(165,.21,'sawtooth',.04);
       if(S.lives<=0){finish(false);return}
     }
@@ -242,14 +297,16 @@
   el.arena.addEventListener('pointerdown',e=>{
     if(S.mode!=='playing')return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
-    S.swipe={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId};
+    S.swipe={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId,turn:S.turn};
     try{el.arena.setPointerCapture(e.pointerId)}catch(e){}
   });
   el.arena.addEventListener('pointerup',e=>{
     if(!S.swipe||S.swipe.id!==e.pointerId)return;
-    const {x,y,t}=S.swipe;S.swipe=null;
+    const {x,y,t,turn}=S.swipe;S.swipe=null;
     const dy=e.clientY-y,dx=e.clientX-x,dt=performance.now()-t;
-    if(dy < -42 && Math.abs(dy)>Math.abs(dx)*1.2 && dt<850)action();
+    if(dy < -32 && Math.abs(dy)>Math.abs(dx)*1.05 && dt<950){
+      if(turn===S.turn)action();else setMessage('合図が切り替わった！ 次を狙って');
+    }
   });
   el.arena.addEventListener('pointercancel',()=>{S.swipe=null});
   document.addEventListener('keydown',e=>{
@@ -264,7 +321,7 @@
   el.soundBtn.addEventListener('click',()=>{S.sound=!S.sound;el.soundBtn.textContent=S.sound?'🔊 ON':'🔇 OFF';el.soundBtn.setAttribute('aria-pressed',String(S.sound));if(S.sound)tone(700,.09)});
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden&&(S.mode==='playing'||S.mode==='countdown')){
-      clearTimer();S.mode='paused';S.kind=null;S.used=true;S.swipe=null;setSignal('一時停止','wait','タブに戻ったら再開できます');el.startBtn.textContent='▶ 再開';setMessage('ゲームを一時停止しました');
+      clearTimer();S.mode='paused';S.kind=null;S.used=true;S.swipe=null;el.arena.classList.remove('hit-mode','trap-mode');el.beatFill.classList.remove('running');setSignal('一時停止','wait','タブに戻ったら再開できます');el.startBtn.textContent='▶ 再開';setMessage('ゲームを一時停止しました');
     }
   });
   reset();
